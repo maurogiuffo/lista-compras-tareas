@@ -46,8 +46,9 @@ tocar el dominio.
 | Marcar que falta      | Vuelve a `pending` y sube al principio                    |
 | Arrastrar y soltar    | Se ubica antes o después de otro ítem (funciona filtrado) |
 
-Categorías: `insumos` y `tarea`. Los insumos pueden tener subcategoría opcional: `limpieza`,
-`verduleria` o `carniceria` (las tareas no llevan). Para sumar subcategorías, agregarlas a
+Categorías: `insumos` y `tarea`. Los insumos pueden tener subcategoría opcional: `almacen`
+(almacén y lácteos), `verduleria`, `carniceria`, `limpieza`, `perfumeria` o `mascotas` (las
+tareas no llevan). Para sumar subcategorías, agregarlas a
 `SUBCATEGORIES` en el dominio del backend y del frontend. Urgencia: `baja`, `media`
 (por defecto), `alta`. Fecha opcional en formato `YYYY-MM-DD`.
 

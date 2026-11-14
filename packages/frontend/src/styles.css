@@ -199,6 +199,7 @@ select {
 
 .filter.sub {
   margin-top: 0.4rem;
+  flex-wrap: wrap;
 }
 
 .filter.sub button {

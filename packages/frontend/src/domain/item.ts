@@ -6,7 +6,14 @@ export const CATEGORIES = ['insumos', 'tarea'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 /** Subcategorías de insumos. */
-export const SUBCATEGORIES = ['limpieza', 'verduleria', 'carniceria'] as const;
+export const SUBCATEGORIES = [
+  'almacen',
+  'verduleria',
+  'carniceria',
+  'limpieza',
+  'perfumeria',
+  'mascotas',
+] as const;
 export type Subcategory = (typeof SUBCATEGORIES)[number];
 
 export function hasSubcategories(category: Category): boolean {
@@ -51,15 +58,21 @@ export const CATEGORY_ICONS: Record<Category, string> = {
 };
 
 export const SUBCATEGORY_LABELS: Record<Subcategory, string> = {
-  limpieza: 'Limpieza',
+  almacen: 'Almacén y lácteos',
   verduleria: 'Verdulería',
   carniceria: 'Carnicería',
+  limpieza: 'Limpieza',
+  perfumeria: 'Perfumería',
+  mascotas: 'Mascotas',
 };
 
 export const SUBCATEGORY_ICONS: Record<Subcategory, string> = {
-  limpieza: '🧽',
+  almacen: '🧀',
   verduleria: '🥬',
   carniceria: '🥩',
+  limpieza: '🧽',
+  perfumeria: '🪥',
+  mascotas: '🐱',
 };
 
 /** Etiqueta e ícono a mostrar: la subcategoría si tiene, si no la categoría. */

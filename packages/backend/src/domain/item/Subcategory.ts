@@ -2,7 +2,14 @@ import { ValidationError } from '../shared/DomainError.js';
 import type { Category } from './Category.js';
 
 /** Subcategorías de `insumos`. Para sumar una nueva, agregarla a esta lista. */
-export const SUBCATEGORIES = ['limpieza', 'verduleria', 'carniceria'] as const;
+export const SUBCATEGORIES = [
+  'almacen',
+  'verduleria',
+  'carniceria',
+  'limpieza',
+  'perfumeria',
+  'mascotas',
+] as const;
 export type Subcategory = (typeof SUBCATEGORIES)[number];
 
 /** Categorías que admiten subcategoría. */
