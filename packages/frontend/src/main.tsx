@@ -1,0 +1,17 @@
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { App } from './App';
+import { ApiProvider } from './api/ApiContext';
+import { createHttpItemsApi } from './api/httpItemsApi';
+import './styles.css';
+
+const root = document.getElementById('root');
+if (!root) throw new Error('No se encontró #root');
+
+createRoot(root).render(
+  <StrictMode>
+    <ApiProvider api={createHttpItemsApi()}>
+      <App />
+    </ApiProvider>
+  </StrictMode>,
+);

@@ -23,7 +23,13 @@ packages/
       config.ts       Configuración por variables de entorno
       main.ts         Punto de entrada
     test/             Tests unitarios con Vitest
-  frontend/           (paso 3) React + Vite
+  frontend/           Web (React + Vite), pensada primero para el celular
+    src/
+      domain/         Tipos del contrato de la API y helpers puros (orden, vencimientos)
+      api/            Puerto ItemsApi, implementación HTTP y su provider (inyección por contexto)
+      hooks/          useItems: estado de la lista y acciones
+      components/     Presentación: formulario, lista con arrastrar y soltar, filtro
+    test/             Tests con Vitest + Testing Library contra un doble de la API
 ```
 
 Las dependencias apuntan siempre hacia adentro: `infrastructure → application → domain`.
@@ -74,7 +80,8 @@ Requiere Node.js 22 o superior.
 
 ```bash
 npm install
-npm run dev -w @lista-compras/backend   # API en http://localhost:3000 con recarga automática
+npm run dev -w @lista-compras/backend    # API en http://localhost:3000 con recarga automática
+npm run dev -w @lista-compras/frontend   # Web en http://localhost:5173 (redirige /api a la API)
 npm test            # tests de todos los paquetes
 npm run typecheck
 npm run lint
@@ -85,6 +92,6 @@ npm run format
 
 1. ✅ Base del proyecto, dominio y casos de uso con tests
 2. ✅ API REST (Fastify) y persistencia en SQLite
-3. Frontend en React
+3. ✅ Frontend en React
 4. Docker y despliegue en Ubuntu Server
 5. Más adelante: login con Google
