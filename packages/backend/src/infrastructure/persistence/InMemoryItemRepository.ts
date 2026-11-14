@@ -32,7 +32,10 @@ export class InMemoryItemRepository implements ItemRepository {
   }
 
   async saveOrder(ids: readonly string[]): Promise<void> {
-    const sameSet = ids.length === this.order.length && ids.every((id) => this.items.has(id));
+    const sameSet =
+      ids.length === this.order.length &&
+      new Set(ids).size === ids.length &&
+      ids.every((id) => this.items.has(id));
     if (!sameSet)
       throw new ValidationError('El nuevo orden debe contener exactamente los ítems actuales');
     this.order = [...ids];
