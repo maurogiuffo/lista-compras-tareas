@@ -57,6 +57,59 @@ Abrí `http://<ip-del-servidor>:8080` desde el celular (en la misma red).
 Los contenedores tienen `restart: unless-stopped`, así que vuelven solos si se reinicia el
 servidor.
 
+## Detrás de nginx con HTTPS
+
+Si el server ya tiene nginx con certificados (por ejemplo, Let's Encrypt), la app se publica
+como un sitio más y el puerto 8080 queda accesible solo desde el propio server.
+
+1. En `.env`:
+
+   ```bash
+   WEB_BIND=127.0.0.1
+   WEB_PORT=8080
+   ```
+
+2. `docker compose up -d` para aplicar el cambio.
+
+3. Un sitio en nginx (`/etc/nginx/sites-available/lista-compras`):
+
+   ```nginx
+   server {
+       listen 443 ssl;
+       http2 on;
+       server_name compras.tudominio.com;
+
+       ssl_certificate     /etc/letsencrypt/live/compras.tudominio.com/fullchain.pem;
+       ssl_certificate_key /etc/letsencrypt/live/compras.tudominio.com/privkey.pem;
+
+       location / {
+           proxy_pass http://127.0.0.1:8080;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto https;
+       }
+   }
+
+   server {
+       listen 80;
+       server_name compras.tudominio.com;
+       return 301 https://$host$request_uri;
+   }
+   ```
+
+4. Activar y recargar:
+
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/lista-compras /etc/nginx/sites-enabled/
+   sudo certbot certonly --nginx -d compras.tudominio.com   # si todavía no hay certificado
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+
+⚠ La app todavía no tiene login: publicada en internet, cualquiera con la URL puede verla y
+editarla. Hasta sumar autenticación, conviene limitar el acceso (por ejemplo `allow`/`deny`
+por IP o `auth_basic` en el `location`).
+
 ## Operación
 
 | Tarea       | Comando                                        |
@@ -85,6 +138,7 @@ Para restaurar, el mismo comando con el `cp` invertido.
 | Variable    | Por defecto | Dónde                         |
 | ----------- | ----------- | ----------------------------- |
 | `WEB_PORT`  | `8080`      | `.env`: puerto publicado      |
+| `WEB_BIND`  | `0.0.0.0`   | `.env`: interfaz del puerto   |
 | `LOG_LEVEL` | `info`      | `.env`: nivel de logs del API |
 
 El resto (`PORT`, `DATABASE_PATH`) ya está fijado dentro de la imagen de la API.

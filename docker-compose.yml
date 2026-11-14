@@ -20,7 +20,8 @@ services:
     image: lista-compras-web
     restart: unless-stopped
     ports:
-      - '${WEB_PORT:-8080}:80'
+      # Detrás de un nginx en el mismo server, usar WEB_BIND=127.0.0.1 para no exponerlo.
+      - '${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:80'
     depends_on:
       api:
         condition: service_healthy
