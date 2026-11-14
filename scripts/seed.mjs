@@ -13,6 +13,12 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
+const [major] = process.versions.node.split('.').map(Number);
+if (major < 22) {
+  console.error(`Este proyecto necesita Node 22 o superior (tenés ${process.version}).`);
+  process.exit(1);
+}
+
 const apiUrl = (process.env.API_URL ?? 'http://localhost:3000/api').replace(/\/$/, '');
 const file = process.argv[2] ?? fileURLToPath(new URL('./data/compras.json', import.meta.url));
 
