@@ -84,6 +84,17 @@ docker compose up -d --build   # web en http://localhost:8080
 
 Detalles, instalación en Ubuntu Server y backups en [DEPLOY.md](DEPLOY.md).
 
+## Carga inicial de datos
+
+`scripts/data/compras.json` tiene la lista de compras de base. Con la API corriendo:
+
+```bash
+npm run seed                                       # contra la API local (puerto 3000)
+API_URL=http://localhost:8080/api npm run seed     # contra Docker
+```
+
+Es idempotente: si un ítem con el mismo nombre ya existe, lo saltea.
+
 ## Desarrollo
 
 Requiere Node.js 22 o superior.
