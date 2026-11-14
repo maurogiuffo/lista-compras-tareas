@@ -4,7 +4,11 @@ import {
   CATEGORY_LABELS,
   type Category,
   type ItemDraft,
+  SUBCATEGORIES,
+  SUBCATEGORY_LABELS,
+  type Subcategory,
   URGENCIES,
+  hasSubcategories,
   URGENCY_LABELS,
   type Urgency,
 } from '../domain/item';
@@ -20,7 +24,8 @@ interface Props {
 
 const EMPTY: ItemDraft = {
   name: '',
-  category: 'verduleria',
+  category: 'insumos',
+  subcategory: null,
   urgency: 'media',
   dueDate: null,
   notes: null,
@@ -47,7 +52,9 @@ export function ItemForm({
     setSubmitting(true);
     try {
       await onSubmit({ ...draft, name, notes: draft.notes?.trim() || null });
-      if (resetOnSubmit) setDraft((d) => ({ ...EMPTY, category: d.category }));
+      if (resetOnSubmit) {
+        setDraft((d) => ({ ...EMPTY, category: d.category, subcategory: d.subcategory }));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -72,7 +79,14 @@ export function ItemForm({
           <span>Categoría</span>
           <select
             value={draft.category}
-            onChange={(e) => set('category', e.target.value as Category)}
+            onChange={(e) => {
+              const category = e.target.value as Category;
+              setDraft((d) => ({
+                ...d,
+                category,
+                subcategory: hasSubcategories(category) ? d.subcategory : null,
+              }));
+            }}
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -81,6 +95,22 @@ export function ItemForm({
             ))}
           </select>
         </label>
+        {hasSubcategories(draft.category) && (
+          <label>
+            <span>Subcategoría</span>
+            <select
+              value={draft.subcategory ?? ''}
+              onChange={(e) => set('subcategory', (e.target.value || null) as Subcategory | null)}
+            >
+              <option value="">Sin subcategoría</option>
+              {SUBCATEGORIES.map((s) => (
+                <option key={s} value={s}>
+                  {SUBCATEGORY_LABELS[s]}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           <span>Urgencia</span>
           <select value={draft.urgency} onChange={(e) => set('urgency', e.target.value as Urgency)}>

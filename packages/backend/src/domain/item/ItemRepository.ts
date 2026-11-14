@@ -1,8 +1,10 @@
 import type { Category } from './Category.js';
 import type { Item } from './Item.js';
+import type { Subcategory } from './Subcategory.js';
 
 export interface ItemFilter {
   readonly category?: Category;
+  readonly subcategory?: Subcategory;
 }
 
 /** Puerto de persistencia. La infraestructura provee la implementación concreta. */

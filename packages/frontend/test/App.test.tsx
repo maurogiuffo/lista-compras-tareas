@@ -26,14 +26,16 @@ describe('App', () => {
     api = new FakeItemsApi();
     await api.create({
       name: 'Tomates',
-      category: 'verduleria',
+      category: 'insumos',
+      subcategory: 'verduleria',
       urgency: 'media',
       dueDate: null,
       notes: null,
     });
     await api.create({
       name: 'Asado',
-      category: 'carnes',
+      category: 'insumos',
+      subcategory: 'carniceria',
       urgency: 'alta',
       dueDate: null,
       notes: null,
@@ -41,6 +43,7 @@ describe('App', () => {
     await api.create({
       name: 'Pagar luz',
       category: 'tarea',
+      subcategory: null,
       urgency: 'media',
       dueDate: '2026-03-09',
       notes: null,
@@ -54,15 +57,32 @@ describe('App', () => {
     expect(screen.getByText('3 pendientes')).toBeInTheDocument();
   });
 
-  it('agrega un ítem al principio', async () => {
+  it('agrega un ítem al principio con su subcategoría', async () => {
     const user = setup(api);
     await screen.findByText('Asado');
     await user.click(screen.getByRole('button', { name: '+ Agregar' }));
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Leche');
-    await user.selectOptions(screen.getByLabelText('Categoría'), 'insumos');
+    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Lavandina');
+    await user.selectOptions(screen.getByLabelText('Subcategoría'), 'limpieza');
     await user.click(screen.getByRole('button', { name: 'Agregar' }));
-    await waitFor(() => expect(rowNames()[0]).toBe('Leche'));
-    expect(api.items[0]).toMatchObject({ name: 'Leche', category: 'insumos' });
+    await waitFor(() => expect(rowNames()[0]).toBe('Lavandina'));
+    expect(api.items[0]).toMatchObject({
+      name: 'Lavandina',
+      category: 'insumos',
+      subcategory: 'limpieza',
+    });
+  });
+
+  it('las tareas no tienen subcategoría', async () => {
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.click(screen.getByRole('button', { name: '+ Agregar' }));
+    await user.selectOptions(screen.getByLabelText('Subcategoría'), 'limpieza');
+    await user.selectOptions(screen.getByLabelText('Categoría'), 'tarea');
+    expect(screen.queryByLabelText('Subcategoría')).not.toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Llamar al plomero');
+    await user.click(screen.getByRole('button', { name: 'Agregar' }));
+    await waitFor(() => expect(rowNames()[0]).toBe('Llamar al plomero'));
+    expect(api.items[0]).toMatchObject({ category: 'tarea', subcategory: null });
   });
 
   it('al marcar comprado baja al final y al desmarcar sube al principio', async () => {
@@ -74,11 +94,19 @@ describe('App', () => {
     await waitFor(() => expect(rowNames()).toEqual(['Pagar luz', 'Asado', 'Tomates']));
   });
 
-  it('filtra por categoría', async () => {
+  it('filtra por categoría y subcategoría', async () => {
     const user = setup(api);
     await screen.findByText('Asado');
-    await user.click(screen.getByRole('button', { name: /Carnes/ }));
+    await user.click(screen.getByRole('button', { name: /Tareas/ }));
+    expect(rowNames()).toEqual(['Pagar luz']);
+    expect(screen.queryByRole('button', { name: /Carnicería/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Insumos/ }));
+    expect(rowNames()).toEqual(['Asado', 'Tomates']);
+    await user.click(screen.getByRole('button', { name: /Carnicería/ }));
     expect(rowNames()).toEqual(['Asado']);
+    // Volver a tocar la subcategoría activa vuelve a todos los insumos.
+    await user.click(screen.getByRole('button', { name: /Carnicería/ }));
+    expect(rowNames()).toEqual(['Asado', 'Tomates']);
   });
 
   it('edita un ítem', async () => {

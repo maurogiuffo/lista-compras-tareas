@@ -6,6 +6,7 @@ import {
   type ItemFilter,
   type ItemRepository,
   type ItemStatus,
+  type Subcategory,
   type Urgency,
   ValidationError,
 } from '../../../domain/index.js';
@@ -14,6 +15,7 @@ interface ItemRow {
   id: string;
   name: string;
   category: string;
+  subcategory: string | null;
   urgency: string;
   status: string;
   due_date: string | null;
@@ -22,19 +24,28 @@ interface ItemRow {
   updated_at: string;
 }
 
-const COLUMNS = 'id, name, category, urgency, status, due_date, notes, created_at, updated_at';
+const COLUMNS =
+  'id, name, category, subcategory, urgency, status, due_date, notes, created_at, updated_at';
 
 /** Adaptador de persistencia sobre SQLite (módulo nativo `node:sqlite`, sin dependencias). */
 export class SqliteItemRepository implements ItemRepository {
   constructor(private readonly db: DatabaseSync) {}
 
   async findAll(filter: ItemFilter = {}): Promise<Item[]> {
-    const rows =
-      filter.category === undefined
-        ? this.db.prepare(`SELECT ${COLUMNS} FROM items ORDER BY position`).all()
-        : this.db
-            .prepare(`SELECT ${COLUMNS} FROM items WHERE category = ? ORDER BY position`)
-            .all(filter.category);
+    const conditions: string[] = [];
+    const params: string[] = [];
+    if (filter.category !== undefined) {
+      conditions.push('category = ?');
+      params.push(filter.category);
+    }
+    if (filter.subcategory !== undefined) {
+      conditions.push('subcategory = ?');
+      params.push(filter.subcategory);
+    }
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const rows = this.db
+      .prepare(`SELECT ${COLUMNS} FROM items ${where} ORDER BY position`)
+      .all(...params);
     return (rows as unknown as ItemRow[]).map(toEntity);
   }
 
@@ -48,6 +59,7 @@ export class SqliteItemRepository implements ItemRepository {
     const params = [
       p.name,
       p.category,
+      p.subcategory,
       p.urgency,
       p.status,
       p.dueDate,
@@ -57,7 +69,7 @@ export class SqliteItemRepository implements ItemRepository {
     ];
     const { changes } = this.db
       .prepare(
-        `UPDATE items SET name = ?, category = ?, urgency = ?, status = ?, due_date = ?,
+        `UPDATE items SET name = ?, category = ?, subcategory = ?, urgency = ?, status = ?, due_date = ?,
            notes = ?, updated_at = ? WHERE id = ?`,
       )
       .run(...params);
@@ -67,13 +79,14 @@ export class SqliteItemRepository implements ItemRepository {
     this.db
       .prepare(
         `INSERT INTO items (${COLUMNS}, position)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                  (SELECT COALESCE(MIN(position), 0) - 1 FROM items))`,
       )
       .run(
         p.id,
         p.name,
         p.category,
+        p.subcategory,
         p.urgency,
         p.status,
         p.dueDate,
@@ -118,6 +131,7 @@ function toEntity(row: ItemRow): Item {
     id: row.id,
     name: row.name,
     category: row.category as Category,
+    subcategory: row.subcategory as Subcategory | null,
     urgency: row.urgency as Urgency,
     status: row.status as ItemStatus,
     dueDate: row.due_date as DueDate | null,

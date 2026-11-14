@@ -12,6 +12,7 @@ const idParams = {
 const itemFields = {
   name: { type: 'string' },
   category: { type: 'string' },
+  subcategory: { type: ['string', 'null'] },
   urgency: { type: 'string' },
   dueDate: { type: ['string', 'null'] },
   notes: { type: ['string', 'null'] },
@@ -26,13 +27,13 @@ interface IdParams {
  * La validación de valores (categorías, fechas, etc.) vive en el dominio.
  */
 export const itemRoutes: FastifyPluginAsync<{ useCases: UseCases }> = async (app, { useCases }) => {
-  app.get<{ Querystring: { category?: string } }>(
+  app.get<{ Querystring: { category?: string; subcategory?: string } }>(
     '/items',
     {
       schema: {
         querystring: {
           type: 'object',
-          properties: { category: { type: 'string' } },
+          properties: { category: { type: 'string' }, subcategory: { type: 'string' } },
           additionalProperties: false,
         },
       },

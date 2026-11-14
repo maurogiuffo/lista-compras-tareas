@@ -5,8 +5,12 @@ import { SqliteItemRepository } from '../../src/infrastructure/persistence/sqlit
 import { openDatabase } from '../../src/infrastructure/persistence/sqlite/openDatabase.js';
 
 const now = new Date('2026-01-01T10:00:00Z');
-const make = (id: string, category = 'verduleria') =>
-  Item.create(id, { name: `Item ${id}`, category, dueDate: '2026-02-01', notes: 'nota' }, now);
+const make = (id: string, subcategory: string | null = 'verduleria', category = 'insumos') =>
+  Item.create(
+    id,
+    { name: `Item ${id}`, category, subcategory, dueDate: '2026-02-01', notes: 'nota' },
+    now,
+  );
 
 /** Toda implementación de ItemRepository debe cumplir el mismo contrato. */
 const implementations: [string, () => ItemRepository][] = [
@@ -33,13 +37,18 @@ describe.each(implementations)('ItemRepository (%s)', (_, createRepo) => {
     expect((await repo.findById('a'))?.status).toBe('done');
   });
 
-  it('filtra por categoría respetando el orden', async () => {
+  it('filtra por categoría y subcategoría respetando el orden', async () => {
     const repo = createRepo();
-    await repo.save(make('a', 'carnes'));
+    await repo.save(make('a', 'carniceria'));
     await repo.save(make('b', 'verduleria'));
-    await repo.save(make('c', 'carnes'));
-    const carnes = await repo.findAll({ category: 'carnes' });
+    await repo.save(make('c', 'carniceria'));
+    await repo.save(make('d', null, 'tarea'));
+    const carnes = await repo.findAll({ subcategory: 'carniceria' });
     expect(carnes.map((i) => i.id)).toEqual(['c', 'a']);
+    const insumos = await repo.findAll({ category: 'insumos' });
+    expect(insumos.map((i) => i.id)).toEqual(['c', 'b', 'a']);
+    const tareas = await repo.findAll({ category: 'tarea' });
+    expect(tareas.map((i) => i.id)).toEqual(['d']);
   });
 
   it('guarda un orden nuevo y rechaza órdenes incompletos o duplicados', async () => {

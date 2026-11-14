@@ -20,6 +20,12 @@ const MIGRATIONS: readonly string[] = [
    );
    CREATE INDEX idx_items_position ON items(position);
    CREATE INDEX idx_items_category ON items(category);`,
+
+  // v2: categorías insumos/tarea con subcategorías. Verdulería y carnes pasan a ser
+  // subcategorías de insumos.
+  `ALTER TABLE items ADD COLUMN subcategory TEXT;
+   UPDATE items SET category = 'insumos', subcategory = 'verduleria' WHERE category = 'verduleria';
+   UPDATE items SET category = 'insumos', subcategory = 'carniceria' WHERE category = 'carnes';`,
 ];
 
 export function migrate(db: DatabaseSync): void {

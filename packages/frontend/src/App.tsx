@@ -1,8 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { CategoryFilter } from './components/CategoryFilter';
 import { ItemForm } from './components/ItemForm';
 import { ItemList } from './components/ItemList';
-import { CATEGORIES, type Category, type Item, localToday } from './domain/item';
+import {
+  type Item,
+  type ItemDraft,
+  type ItemFilter,
+  localToday,
+  matchesFilter,
+} from './domain/item';
 import { useItems } from './hooks/useItems';
 
 interface Props {
@@ -14,16 +20,17 @@ interface Props {
 
 export function App({ today = localToday(), confirm = (m) => window.confirm(m) }: Props) {
   const { items, loading, error, dismissError, add, update, remove, toggle, reorder } = useItems();
-  const [filter, setFilter] = useState<Category | null>(null);
+  const [filter, setFilter] = useState<ItemFilter>({ kind: 'all' });
   const [adding, setAdding] = useState(false);
 
-  const counts = useMemo(() => {
-    const result = Object.fromEntries(CATEGORIES.map((c) => [c, 0])) as Record<Category, number>;
-    for (const item of items) if (item.status === 'pending') result[item.category] += 1;
-    return result;
-  }, [items]);
-
-  const visible = filter ? items.filter((i) => i.category === filter) : items;
+  const visible = items.filter((i) => matchesFilter(i, filter));
+  // Al agregar con un filtro activo, el formulario arranca con esa clasificación.
+  const initialDraft: Partial<ItemDraft> =
+    filter.kind === 'category'
+      ? { category: filter.category }
+      : filter.kind === 'subcategory'
+        ? { category: 'insumos', subcategory: filter.subcategory }
+        : {};
   const pendingCount = visible.filter((i) => i.status === 'pending').length;
 
   const handleDelete = (item: Item) => {
@@ -51,7 +58,7 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
       <section className="add-section">
         {adding ? (
           <ItemForm
-            initial={filter ? { category: filter } : {}}
+            initial={initialDraft}
             submitLabel="Agregar"
             resetOnSubmit
             onSubmit={add}
@@ -64,7 +71,7 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
         )}
       </section>
 
-      <CategoryFilter value={filter} counts={counts} onChange={setFilter} />
+      <CategoryFilter value={filter} items={items} onChange={setFilter} />
 
       {!loading && (
         <ItemList

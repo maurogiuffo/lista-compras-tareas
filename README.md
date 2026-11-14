@@ -46,23 +46,25 @@ tocar el dominio.
 | Marcar que falta      | Vuelve a `pending` y sube al principio                    |
 | Arrastrar y soltar    | Se ubica antes o después de otro ítem (funciona filtrado) |
 
-Categorías: `verduleria`, `carnes`, `insumos`, `tarea`. Urgencia: `baja`, `media`
+Categorías: `insumos` y `tarea`. Los insumos pueden tener subcategoría opcional: `limpieza`,
+`verduleria` o `carniceria` (las tareas no llevan). Para sumar subcategorías, agregarlas a
+`SUBCATEGORIES` en el dominio del backend y del frontend. Urgencia: `baja`, `media`
 (por defecto), `alta`. Fecha opcional en formato `YYYY-MM-DD`.
 
 ## API
 
 Base: `/api`. Errores con formato `{ "error": "CODIGO", "message": "..." }` (400 validación, 404 inexistente).
 
-| Método | Ruta                 | Descripción                                                   |
-| ------ | -------------------- | ------------------------------------------------------------- |
-| GET    | `/health`            | Estado del servicio                                           |
-| GET    | `/items?category=`   | Lista en orden; filtro opcional por categoría                 |
-| POST   | `/items`             | Crea `{ name, category, urgency?, dueDate?, notes? }`         |
-| PATCH  | `/items/:id`         | Edita cualquiera de esos campos (`null` limpia fecha o notas) |
-| DELETE | `/items/:id`         | Borra                                                         |
-| POST   | `/items/:id/done`    | Marca comprado/hecho y lo baja al final                       |
-| POST   | `/items/:id/pending` | Marca que falta y lo sube al principio                        |
-| POST   | `/items/:id/reorder` | `{ beforeId }` o `{ afterId }`                                |
+| Método | Ruta                            | Descripción                                                         |
+| ------ | ------------------------------- | ------------------------------------------------------------------- |
+| GET    | `/health`                       | Estado del servicio                                                 |
+| GET    | `/items?category=&subcategory=` | Lista en orden; filtros opcionales                                  |
+| POST   | `/items`                        | Crea `{ name, category, subcategory?, urgency?, dueDate?, notes? }` |
+| PATCH  | `/items/:id`                    | Edita cualquiera de esos campos (`null` limpia fecha o notas)       |
+| DELETE | `/items/:id`                    | Borra                                                               |
+| POST   | `/items/:id/done`               | Marca comprado/hecho y lo baja al final                             |
+| POST   | `/items/:id/pending`            | Marca que falta y lo sube al principio                              |
+| POST   | `/items/:id/reorder`            | `{ beforeId }` o `{ afterId }`                                      |
 
 ## Configuración
 

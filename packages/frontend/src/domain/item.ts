@@ -2,8 +2,16 @@
  * Modelo del lado del cliente. Refleja el contrato de la API (`ItemDto` del backend);
  * si cambia uno, hay que actualizar el otro.
  */
-export const CATEGORIES = ['verduleria', 'carnes', 'insumos', 'tarea'] as const;
+export const CATEGORIES = ['insumos', 'tarea'] as const;
 export type Category = (typeof CATEGORIES)[number];
+
+/** Subcategorías de insumos. */
+export const SUBCATEGORIES = ['limpieza', 'verduleria', 'carniceria'] as const;
+export type Subcategory = (typeof SUBCATEGORIES)[number];
+
+export function hasSubcategories(category: Category): boolean {
+  return category === 'insumos';
+}
 
 export const URGENCIES = ['baja', 'media', 'alta'] as const;
 export type Urgency = (typeof URGENCIES)[number];
@@ -14,6 +22,7 @@ export interface Item {
   readonly id: string;
   readonly name: string;
   readonly category: Category;
+  readonly subcategory: Subcategory | null;
   readonly urgency: Urgency;
   readonly status: ItemStatus;
   readonly dueDate: string | null;
@@ -25,24 +34,60 @@ export interface Item {
 export interface ItemDraft {
   readonly name: string;
   readonly category: Category;
+  readonly subcategory: Subcategory | null;
   readonly urgency: Urgency;
   readonly dueDate: string | null;
   readonly notes: string | null;
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  verduleria: 'Verdulería',
-  carnes: 'Carnes',
   insumos: 'Insumos',
-  tarea: 'Tarea',
+  tarea: 'Tareas',
 };
 
 export const CATEGORY_ICONS: Record<Category, string> = {
-  verduleria: '🥬',
-  carnes: '🥩',
-  insumos: '🧴',
+  insumos: '🛒',
   tarea: '📋',
 };
+
+export const SUBCATEGORY_LABELS: Record<Subcategory, string> = {
+  limpieza: 'Limpieza',
+  verduleria: 'Verdulería',
+  carniceria: 'Carnicería',
+};
+
+export const SUBCATEGORY_ICONS: Record<Subcategory, string> = {
+  limpieza: '🧽',
+  verduleria: '🥬',
+  carniceria: '🥩',
+};
+
+/** Etiqueta e ícono a mostrar: la subcategoría si tiene, si no la categoría. */
+export function classification(item: Pick<Item, 'category' | 'subcategory'>): {
+  label: string;
+  icon: string;
+} {
+  return item.subcategory
+    ? { label: SUBCATEGORY_LABELS[item.subcategory], icon: SUBCATEGORY_ICONS[item.subcategory] }
+    : { label: CATEGORY_LABELS[item.category], icon: CATEGORY_ICONS[item.category] };
+}
+
+/** Filtro activo de la lista: todo, una categoría, o una subcategoría de insumos. */
+export type ItemFilter =
+  | { readonly kind: 'all' }
+  | { readonly kind: 'category'; readonly category: Category }
+  | { readonly kind: 'subcategory'; readonly subcategory: Subcategory };
+
+export function matchesFilter(item: Item, filter: ItemFilter): boolean {
+  switch (filter.kind) {
+    case 'all':
+      return true;
+    case 'category':
+      return item.category === filter.category;
+    case 'subcategory':
+      return item.subcategory === filter.subcategory;
+  }
+}
 
 export const URGENCY_LABELS: Record<Urgency, string> = {
   baja: 'Baja',

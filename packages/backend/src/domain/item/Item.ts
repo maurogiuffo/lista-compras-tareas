@@ -2,6 +2,7 @@ import { ValidationError } from '../shared/DomainError.js';
 import { type Category, parseCategory } from './Category.js';
 import { type DueDate, parseDueDate } from './DueDate.js';
 import type { ItemStatus } from './ItemStatus.js';
+import { type Subcategory, assertSubcategoryAllowed, parseSubcategory } from './Subcategory.js';
 import { DEFAULT_URGENCY, type Urgency, parseUrgency } from './Urgency.js';
 
 export const MAX_NAME_LENGTH = 120;
@@ -11,6 +12,7 @@ export interface ItemProps {
   readonly id: string;
   readonly name: string;
   readonly category: Category;
+  readonly subcategory: Subcategory | null;
   readonly urgency: Urgency;
   readonly status: ItemStatus;
   readonly dueDate: DueDate | null;
@@ -22,6 +24,7 @@ export interface ItemProps {
 export interface CreateItemInput {
   readonly name: unknown;
   readonly category: unknown;
+  readonly subcategory?: unknown;
   readonly urgency?: unknown;
   readonly dueDate?: unknown;
   readonly notes?: unknown;
@@ -37,10 +40,11 @@ export class Item {
   private constructor(private readonly props: ItemProps) {}
 
   static create(id: string, input: CreateItemInput, now: Date): Item {
-    return new Item({
+    return Item.validated({
       id,
       name: parseName(input.name),
       category: parseCategory(input.category),
+      subcategory: parseOptional(input.subcategory, parseSubcategory),
       urgency: input.urgency === undefined ? DEFAULT_URGENCY : parseUrgency(input.urgency),
       status: 'pending',
       dueDate: parseOptional(input.dueDate, parseDueDate),
@@ -64,6 +68,9 @@ export class Item {
   get category(): Category {
     return this.props.category;
   }
+  get subcategory(): Subcategory | null {
+    return this.props.subcategory;
+  }
   get urgency(): Urgency {
     return this.props.urgency;
   }
@@ -84,10 +91,19 @@ export class Item {
   }
 
   update(input: UpdateItemInput, now: Date): Item {
+    const category = input.category === undefined ? this.category : parseCategory(input.category);
+    // Si cambia a una categoría sin subcategorías y no se indica otra, se limpia sola.
+    const subcategory =
+      input.subcategory !== undefined
+        ? parseOptional(input.subcategory, parseSubcategory)
+        : category === this.category
+          ? this.subcategory
+          : null;
     return this.with(
       {
         ...(input.name !== undefined && { name: parseName(input.name) }),
-        ...(input.category !== undefined && { category: parseCategory(input.category) }),
+        category,
+        subcategory,
         ...(input.urgency !== undefined && { urgency: parseUrgency(input.urgency) }),
         ...(input.dueDate !== undefined && { dueDate: parseOptional(input.dueDate, parseDueDate) }),
         ...(input.notes !== undefined && { notes: parseOptional(input.notes, parseNotes) }),
@@ -109,7 +125,13 @@ export class Item {
   }
 
   private with(changes: Partial<ItemProps>, now: Date): Item {
-    return new Item({ ...this.props, ...changes, updatedAt: now });
+    return Item.validated({ ...this.props, ...changes, updatedAt: now });
+  }
+
+  /** Reglas que involucran más de un campo. */
+  private static validated(props: ItemProps): Item {
+    assertSubcategoryAllowed(props.category, props.subcategory);
+    return new Item(props);
   }
 }
 

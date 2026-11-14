@@ -10,7 +10,10 @@ export class InMemoryItemRepository implements ItemRepository {
     return this.order
       .map((id) => this.items.get(id))
       .filter((item): item is Item => item !== undefined)
-      .filter((item) => filter.category === undefined || item.category === filter.category);
+      .filter((item) => filter.category === undefined || item.category === filter.category)
+      .filter(
+        (item) => filter.subcategory === undefined || item.subcategory === filter.subcategory,
+      );
   }
 
   async findById(id: string): Promise<Item | null> {

@@ -1,6 +1,6 @@
 import { ValidationError } from '../shared/DomainError.js';
 
-export const CATEGORIES = ['verduleria', 'carnes', 'insumos', 'tarea'] as const;
+export const CATEGORIES = ['insumos', 'tarea'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export function parseCategory(value: unknown): Category {

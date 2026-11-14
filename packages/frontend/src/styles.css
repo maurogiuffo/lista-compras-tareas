@@ -176,7 +176,7 @@ select {
 
 .form-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 0.5rem;
 }
 
@@ -193,12 +193,24 @@ select {
   gap: 0.5rem;
 }
 
+.filters {
+  margin-bottom: 0.75rem;
+}
+
+.filter.sub {
+  margin-top: 0.4rem;
+}
+
+.filter.sub button {
+  font-size: 0.9rem;
+  padding: 0.3rem 0.7rem;
+}
+
 .filter {
   display: flex;
   gap: 0.4rem;
   overflow-x: auto;
   padding-bottom: 0.25rem;
-  margin-bottom: 0.75rem;
   scrollbar-width: none;
 }
 
@@ -343,14 +355,4 @@ select {
   text-align: center;
   color: var(--muted);
   padding: 2rem 0;
-}
-
-@media (max-width: 420px) {
-  .form-row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .form-row label:last-child {
-    grid-column: 1 / -1;
-  }
 }

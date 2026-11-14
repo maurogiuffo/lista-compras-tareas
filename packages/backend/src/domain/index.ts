@@ -1,5 +1,6 @@
 export * from './shared/DomainError.js';
 export * from './item/Category.js';
+export * from './item/Subcategory.js';
 export * from './item/Urgency.js';
 export * from './item/ItemStatus.js';
 export * from './item/DueDate.js';

@@ -1,10 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  CATEGORY_ICONS,
-  CATEGORY_LABELS,
   type Item,
   URGENCY_LABELS,
+  classification,
   dueState,
   formatShortDate,
 } from '../domain/item';
@@ -28,6 +27,7 @@ export function ItemRow({ item, today, onToggle, onEdit, onDelete }: Props) {
     isDragging,
   } = useSortable({ id: item.id });
   const done = item.status === 'done';
+  const { label, icon } = classification(item);
   const actionLabel = item.category === 'tarea' ? 'hecho' : 'comprado';
 
   return (
@@ -58,8 +58,8 @@ export function ItemRow({ item, today, onToggle, onEdit, onDelete }: Props) {
       <div className="item-body">
         <span className="item-name">{item.name}</span>
         <span className="item-meta">
-          <span title={CATEGORY_LABELS[item.category]}>
-            {CATEGORY_ICONS[item.category]} {CATEGORY_LABELS[item.category]}
+          <span>
+            {icon} {label}
           </span>
           {item.urgency !== 'media' && (
             <span className={`badge urgency urgency-${item.urgency}`}>

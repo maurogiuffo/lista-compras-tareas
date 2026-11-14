@@ -34,7 +34,11 @@ describe('API /api/items', () => {
   });
 
   it('crea, lista, edita y borra', async () => {
-    const { status, item } = await create({ name: 'Tomates', category: 'verduleria' });
+    const { status, item } = await create({
+      name: 'Tomates',
+      category: 'insumos',
+      subcategory: 'verduleria',
+    });
     expect(status).toBe(201);
     expect(item).toMatchObject({
       id: 'item-1',
@@ -56,20 +60,20 @@ describe('API /api/items', () => {
   });
 
   it('marca comprado (al final) y falta (al principio)', async () => {
-    await create({ name: 'Tomates', category: 'verduleria' });
-    await create({ name: 'Asado', category: 'carnes' });
-    await create({ name: 'Leche', category: 'insumos' });
+    await create({ name: 'Tomates', category: 'insumos', subcategory: 'verduleria' });
+    await create({ name: 'Asado', category: 'insumos', subcategory: 'carniceria' });
+    await create({ name: 'Lavandina', category: 'insumos', subcategory: 'limpieza' });
 
     await app.inject({ method: 'POST', url: '/api/items/item-3/done' });
-    expect(await names()).toEqual(['Asado', 'Tomates', 'Leche']);
+    expect(await names()).toEqual(['Asado', 'Tomates', 'Lavandina']);
 
     await app.inject({ method: 'POST', url: '/api/items/item-1/pending' });
-    expect(await names()).toEqual(['Tomates', 'Asado', 'Leche']);
+    expect(await names()).toEqual(['Tomates', 'Asado', 'Lavandina']);
   });
 
   it('reordena y filtra por categoría', async () => {
-    await create({ name: 'Tomates', category: 'verduleria' });
-    await create({ name: 'Asado', category: 'carnes' });
+    await create({ name: 'Tomates', category: 'insumos', subcategory: 'verduleria' });
+    await create({ name: 'Asado', category: 'insumos', subcategory: 'carniceria' });
     await create({ name: 'Pagar luz', category: 'tarea', dueDate: '2026-03-10' });
 
     const res = await app.inject({
@@ -93,7 +97,7 @@ describe('API /api/items', () => {
   });
 
   it('responde 400 si el reordenamiento no indica referencia', async () => {
-    await create({ name: 'Tomates', category: 'verduleria' });
+    await create({ name: 'Tomates', category: 'insumos', subcategory: 'verduleria' });
     const res = await app.inject({ method: 'POST', url: '/api/items/item-1/reorder', payload: {} });
     expect(res.statusCode).toBe(400);
   });
