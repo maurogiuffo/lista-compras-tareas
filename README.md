@@ -74,6 +74,14 @@ Base: `/api`. Errores con formato `{ "error": "CODIGO", "message": "..." }` (400
 | `CORS_ORIGIN`   | (vacío)                       | Origen permitido para el front en dev |
 | `LOG_LEVEL`     | `info`                        | Nivel de logs                         |
 
+## Con Docker
+
+```bash
+docker compose up -d --build   # web en http://localhost:8080
+```
+
+Detalles, instalación en Ubuntu Server y backups en [DEPLOY.md](DEPLOY.md).
+
 ## Desarrollo
 
 Requiere Node.js 22 o superior.
@@ -93,5 +101,5 @@ npm run format
 1. ✅ Base del proyecto, dominio y casos de uso con tests
 2. ✅ API REST (Fastify) y persistencia en SQLite
 3. ✅ Frontend en React
-4. Docker y despliegue en Ubuntu Server
+4. ✅ Docker y despliegue en Ubuntu Server (ver [DEPLOY.md](DEPLOY.md))
 5. Más adelante: login con Google

@@ -29,7 +29,8 @@ export async function buildServer({
     });
   }
 
-  app.get('/api/health', async () => ({ status: 'ok' }));
+  // El healthcheck de Docker lo consulta cada 30 s: no ensuciar los logs.
+  app.get('/api/health', { logLevel: 'warn' }, async () => ({ status: 'ok' }));
   await app.register(itemRoutes, { prefix: '/api', useCases });
 
   return app;

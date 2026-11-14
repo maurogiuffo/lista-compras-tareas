@@ -1,0 +1,29 @@
+# Levantar todo:  docker compose up -d --build
+# La web queda en http://<ip-del-servidor>:${WEB_PORT:-8080}
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    image: lista-compras-api
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - lista-compras-data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    image: lista-compras-web
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  lista-compras-data:
