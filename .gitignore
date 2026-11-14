@@ -3,6 +3,7 @@ dist/
 coverage/
 *.log
 .env
-data/
+/data/
+packages/*/data/
 *.sqlite
 *.tar.gz

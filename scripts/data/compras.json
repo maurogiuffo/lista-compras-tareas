@@ -1,0 +1,305 @@
+[
+  {
+    "name": "Piedras gatos",
+    "category": "insumos",
+    "subcategory": "mascotas"
+  },
+  {
+    "name": "Comida gatos",
+    "category": "insumos",
+    "subcategory": "mascotas"
+  },
+  {
+    "name": "Pechugas de pollo",
+    "category": "insumos",
+    "subcategory": "carniceria"
+  },
+  {
+    "name": "Hígado",
+    "category": "insumos",
+    "subcategory": "carniceria"
+  },
+  {
+    "name": "Carne para churrascos",
+    "category": "insumos",
+    "subcategory": "carniceria"
+  },
+  {
+    "name": "Huevos",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Zanahoria",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Tomate",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Lechuga",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Cebolla",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Papa",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Zapallo",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Rúcula",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Espinaca",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Acelga",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Manzana",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Banana",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Uvas",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Palta",
+    "category": "insumos",
+    "subcategory": "verduleria"
+  },
+  {
+    "name": "Queso Port Salut light",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Ricota",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Leche en polvo",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Leche",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Yerba",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Azúcar",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Edulcorante",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Fideos integrales",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Avena instantánea",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Cacao sin azúcar",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Harina integral",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Arroz integral",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Aceite de oliva",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Aceite de girasol",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Aceto balsámico",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Vinagre de manzana",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Mostaza",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Mayonesa",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Ketchup",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Salsa barbacoa",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Jabón para ropa",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Suavizante para ropa",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Dentífrico",
+    "category": "insumos",
+    "subcategory": "perfumeria"
+  },
+  {
+    "name": "Hilo dental",
+    "category": "insumos",
+    "subcategory": "perfumeria"
+  },
+  {
+    "name": "Desodorante",
+    "category": "insumos",
+    "subcategory": "perfumeria"
+  },
+  {
+    "name": "Papel higiénico",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Jabón de baño",
+    "category": "insumos",
+    "subcategory": "perfumeria"
+  },
+  {
+    "name": "Rollo de papel de cocina",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Perfumina",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Cloro",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Desodorante de piso",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Detergente",
+    "category": "insumos",
+    "subcategory": "limpieza"
+  },
+  {
+    "name": "Jabón líquido de baño",
+    "category": "insumos",
+    "subcategory": "perfumeria"
+  },
+  {
+    "name": "Soja texturizada",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Polvo para hornear",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Cúrcuma",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Curry",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Chía",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Mix de cereales",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Proteína",
+    "category": "insumos",
+    "subcategory": "almacen"
+  },
+  {
+    "name": "Plasticola",
+    "category": "insumos"
+  },
+  {
+    "name": "Boligoma",
+    "category": "insumos"
+  }
+]
