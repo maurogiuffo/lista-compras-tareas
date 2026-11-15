@@ -5,6 +5,8 @@ import {
   Item,
   type ItemFilter,
   type ItemRepository,
+  type ItemRepositoryProvider,
+  type OwnerId,
   type ItemStatus,
   type Subcategory,
   type Urgency,
@@ -27,13 +29,28 @@ interface ItemRow {
 const COLUMNS =
   'id, name, category, subcategory, urgency, status, due_date, notes, created_at, updated_at';
 
-/** Adaptador de persistencia sobre SQLite (módulo nativo `node:sqlite`, sin dependencias). */
-export class SqliteItemRepository implements ItemRepository {
+/** Entrega un repositorio SQLite acotado a la lista de cada dueño. */
+export class SqliteItemRepositoryProvider implements ItemRepositoryProvider {
   constructor(private readonly db: DatabaseSync) {}
 
+  forOwner(ownerId: OwnerId): ItemRepository {
+    return new SqliteItemRepository(this.db, ownerId);
+  }
+}
+
+/**
+ * Adaptador de persistencia sobre SQLite (módulo nativo `node:sqlite`, sin dependencias).
+ * Cada instancia opera solo sobre los ítems de un dueño.
+ */
+export class SqliteItemRepository implements ItemRepository {
+  constructor(
+    private readonly db: DatabaseSync,
+    private readonly ownerId: OwnerId,
+  ) {}
+
   async findAll(filter: ItemFilter = {}): Promise<Item[]> {
-    const conditions: string[] = [];
-    const params: string[] = [];
+    const conditions: string[] = ['owner_id = ?'];
+    const params: string[] = [this.ownerId];
     if (filter.category !== undefined) {
       conditions.push('category = ?');
       params.push(filter.category);
@@ -42,15 +59,16 @@ export class SqliteItemRepository implements ItemRepository {
       conditions.push('subcategory = ?');
       params.push(filter.subcategory);
     }
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const rows = this.db
-      .prepare(`SELECT ${COLUMNS} FROM items ${where} ORDER BY position`)
+      .prepare(`SELECT ${COLUMNS} FROM items WHERE ${conditions.join(' AND ')} ORDER BY position`)
       .all(...params);
     return (rows as unknown as ItemRow[]).map(toEntity);
   }
 
   async findById(id: string): Promise<Item | null> {
-    const row = this.db.prepare(`SELECT ${COLUMNS} FROM items WHERE id = ?`).get(id);
+    const row = this.db
+      .prepare(`SELECT ${COLUMNS} FROM items WHERE id = ? AND owner_id = ?`)
+      .get(id, this.ownerId);
     return row ? toEntity(row as unknown as ItemRow) : null;
   }
 
@@ -66,11 +84,12 @@ export class SqliteItemRepository implements ItemRepository {
       p.notes,
       p.updatedAt.toISOString(),
       p.id,
+      this.ownerId,
     ];
     const { changes } = this.db
       .prepare(
         `UPDATE items SET name = ?, category = ?, subcategory = ?, urgency = ?, status = ?, due_date = ?,
-           notes = ?, updated_at = ? WHERE id = ?`,
+           notes = ?, updated_at = ? WHERE id = ? AND owner_id = ?`,
       )
       .run(...params);
     if (changes > 0) return;
@@ -78,9 +97,9 @@ export class SqliteItemRepository implements ItemRepository {
     // Ítem nuevo: entra al principio de la lista.
     this.db
       .prepare(
-        `INSERT INTO items (${COLUMNS}, position)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                 (SELECT COALESCE(MIN(position), 0) - 1 FROM items))`,
+        `INSERT INTO items (${COLUMNS}, owner_id, position)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                 (SELECT COALESCE(MIN(position), 0) - 1 FROM items WHERE owner_id = ?))`,
       )
       .run(
         p.id,
@@ -93,15 +112,19 @@ export class SqliteItemRepository implements ItemRepository {
         p.notes,
         p.createdAt.toISOString(),
         p.updatedAt.toISOString(),
+        this.ownerId,
+        this.ownerId,
       );
   }
 
   async delete(id: string): Promise<void> {
-    this.db.prepare('DELETE FROM items WHERE id = ?').run(id);
+    this.db.prepare('DELETE FROM items WHERE id = ? AND owner_id = ?').run(id, this.ownerId);
   }
 
   async getOrder(): Promise<string[]> {
-    const rows = this.db.prepare('SELECT id FROM items ORDER BY position').all();
+    const rows = this.db
+      .prepare('SELECT id FROM items WHERE owner_id = ? ORDER BY position')
+      .all(this.ownerId);
     return (rows as unknown as { id: string }[]).map((r) => r.id);
   }
 
@@ -114,10 +137,10 @@ export class SqliteItemRepository implements ItemRepository {
     if (!sameSet) {
       throw new ValidationError('El nuevo orden debe contener exactamente los ítems actuales');
     }
-    const update = this.db.prepare('UPDATE items SET position = ? WHERE id = ?');
+    const update = this.db.prepare('UPDATE items SET position = ? WHERE id = ? AND owner_id = ?');
     this.db.exec('BEGIN');
     try {
-      ids.forEach((id, index) => update.run(index, id));
+      ids.forEach((id, index) => update.run(index, id, this.ownerId));
       this.db.exec('COMMIT');
     } catch (error) {
       this.db.exec('ROLLBACK');

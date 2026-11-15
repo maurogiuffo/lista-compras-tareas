@@ -1,4 +1,10 @@
-import type { Item, ItemFilter, ItemRepository } from '../../domain/index.js';
+import type {
+  Item,
+  ItemFilter,
+  ItemRepository,
+  ItemRepositoryProvider,
+  OwnerId,
+} from '../../domain/index.js';
 import { ValidationError } from '../../domain/index.js';
 
 /** Implementación en memoria: útil para tests y desarrollo sin base de datos. */
@@ -42,5 +48,18 @@ export class InMemoryItemRepository implements ItemRepository {
     if (!sameSet)
       throw new ValidationError('El nuevo orden debe contener exactamente los ítems actuales');
     this.order = [...ids];
+  }
+}
+
+export class InMemoryItemRepositoryProvider implements ItemRepositoryProvider {
+  private readonly lists = new Map<OwnerId, InMemoryItemRepository>();
+
+  forOwner(ownerId: OwnerId): ItemRepository {
+    let list = this.lists.get(ownerId);
+    if (!list) {
+      list = new InMemoryItemRepository();
+      this.lists.set(ownerId, list);
+    }
+    return list;
   }
 }

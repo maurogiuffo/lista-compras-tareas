@@ -10,6 +10,8 @@ services:
     restart: unless-stopped
     environment:
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Usuario cuando no hay login, y dueño de los ítems creados antes de haber usuarios.
+      DEFAULT_USER: ${DEFAULT_USER:-local}
     volumes:
       - lista-compras-data:/data
 

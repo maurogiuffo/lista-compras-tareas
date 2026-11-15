@@ -1,15 +1,16 @@
 import { loadConfig } from './config.js';
-import { createUseCases } from './container.js';
+import { createUseCasesFactory } from './container.js';
 import { buildServer } from './infrastructure/http/buildServer.js';
-import { SqliteItemRepository } from './infrastructure/persistence/sqlite/SqliteItemRepository.js';
+import { ownerFromProxyHeader } from './infrastructure/http/owner.js';
+import { SqliteItemRepositoryProvider } from './infrastructure/persistence/sqlite/SqliteItemRepository.js';
 import { openDatabase } from './infrastructure/persistence/sqlite/openDatabase.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
-  const db = openDatabase(config.databasePath);
-  const useCases = createUseCases({ repository: new SqliteItemRepository(db) });
+  const db = openDatabase(config.databasePath, { defaultOwner: config.defaultUser });
   const app = await buildServer({
-    useCases,
+    useCasesFor: createUseCasesFactory(new SqliteItemRepositoryProvider(db)),
+    resolveOwner: ownerFromProxyHeader(config.defaultUser),
     logger: { level: config.logLevel },
     corsOrigin: config.corsOrigin,
   });

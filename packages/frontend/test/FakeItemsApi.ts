@@ -6,6 +6,12 @@ export class FakeItemsApi implements ItemsApi {
   items: Item[] = [];
   private seq = 0;
 
+  user = 'mauro';
+
+  async me() {
+    return { user: this.user };
+  }
+
   async list(category?: Category) {
     return this.items.filter((i) => !category || i.category === category);
   }

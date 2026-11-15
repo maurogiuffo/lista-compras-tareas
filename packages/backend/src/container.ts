@@ -11,7 +11,7 @@ import {
   systemClock,
   uuidGenerator,
 } from './application/index.js';
-import type { ItemRepository } from './domain/index.js';
+import type { ItemRepository, ItemRepositoryProvider, OwnerId } from './domain/index.js';
 
 export interface UseCases {
   readonly listItems: ListItems;
@@ -44,4 +44,14 @@ export function createUseCases({
     markItemPending: new MarkItemPending(repository, clock),
     reorderItem: new ReorderItem(repository),
   };
+}
+
+/** Arma los casos de uso de la lista de un usuario. Son objetos livianos: uno por request. */
+export type UseCasesFactory = (ownerId: OwnerId) => UseCases;
+
+export function createUseCasesFactory(
+  provider: ItemRepositoryProvider,
+  deps: Omit<ContainerDeps, 'repository'> = {},
+): UseCasesFactory {
+  return (ownerId) => createUseCases({ ...deps, repository: provider.forOwner(ownerId) });
 }

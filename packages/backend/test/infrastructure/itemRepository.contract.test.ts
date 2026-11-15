@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { Item, type ItemRepository, ValidationError } from '../../src/domain/index.js';
-import { InMemoryItemRepository } from '../../src/infrastructure/persistence/InMemoryItemRepository.js';
-import { SqliteItemRepository } from '../../src/infrastructure/persistence/sqlite/SqliteItemRepository.js';
+import {
+  Item,
+  type ItemRepository,
+  type ItemRepositoryProvider,
+  type OwnerId,
+  ValidationError,
+} from '../../src/domain/index.js';
+import { InMemoryItemRepositoryProvider } from '../../src/infrastructure/persistence/InMemoryItemRepository.js';
+import { SqliteItemRepositoryProvider } from '../../src/infrastructure/persistence/sqlite/SqliteItemRepository.js';
 import { openDatabase } from '../../src/infrastructure/persistence/sqlite/openDatabase.js';
 
 const now = new Date('2026-01-01T10:00:00Z');
@@ -12,13 +18,35 @@ const make = (id: string, subcategory: string | null = 'verduleria', category = 
     now,
   );
 
+const ana = 'ana' as OwnerId;
+const beto = 'beto' as OwnerId;
+
 /** Toda implementación de ItemRepository debe cumplir el mismo contrato. */
-const implementations: [string, () => ItemRepository][] = [
-  ['InMemory', () => new InMemoryItemRepository()],
-  ['SQLite', () => new SqliteItemRepository(openDatabase(':memory:'))],
+const implementations: [string, () => ItemRepositoryProvider][] = [
+  ['InMemory', () => new InMemoryItemRepositoryProvider()],
+  ['SQLite', () => new SqliteItemRepositoryProvider(openDatabase(':memory:'))],
 ];
 
-describe.each(implementations)('ItemRepository (%s)', (_, createRepo) => {
+describe.each(implementations)('ItemRepository (%s)', (_, createProvider) => {
+  const createRepo = (): ItemRepository => createProvider().forOwner(ana);
+
+  it('cada dueño tiene su propia lista, con su propio orden', async () => {
+    const provider = createProvider();
+    const anaList = provider.forOwner(ana);
+    const betoList = provider.forOwner(beto);
+    await anaList.save(make('a'));
+    await anaList.save(make('b'));
+    await betoList.save(make('c'));
+    expect(await anaList.getOrder()).toEqual(['b', 'a']);
+    expect(await betoList.getOrder()).toEqual(['c']);
+    // Beto no puede ver, borrar ni reordenar ítems de Ana.
+    expect(await betoList.findById('a')).toBeNull();
+    await betoList.delete('a');
+    expect(await anaList.findById('a')).not.toBeNull();
+    await expect(betoList.saveOrder(['a', 'c'])).rejects.toThrow(ValidationError);
+    expect((await provider.forOwner(ana).findAll()).map((i) => i.id)).toEqual(['b', 'a']);
+  });
+
   it('guarda y recupera un ítem con todos sus campos', async () => {
     const repo = createRepo();
     const item = make('a');

@@ -6,8 +6,11 @@
  * Uso:
  *   node scripts/seed.mjs [archivo.json]
  *   API_URL=http://localhost:8080/api node scripts/seed.mjs   # contra Docker
+ *   SEED_USER=ana API_URL=http://api:3000/api node scripts/seed.mjs  # lista de "ana"
  *
  * Por defecto usa http://localhost:3000/api y scripts/data/compras.json.
+ * Cada usuario tiene su propia lista: SEED_USER indica en cuál cargar (si no, el usuario
+ * por defecto de la API). Solo funciona hablando directo con la API, no a través del nginx.
  * Los ítems quedan en el mismo orden que en el archivo (el primero arriba).
  */
 import { readFile } from 'node:fs/promises';
@@ -19,13 +22,19 @@ if (major < 22) {
   process.exit(1);
 }
 
+const seedUser = process.env.SEED_USER?.trim();
 const apiUrl = (process.env.API_URL ?? 'http://localhost:3000/api').replace(/\/$/, '');
 const file = process.argv[2] ?? fileURLToPath(new URL('./data/compras.json', import.meta.url));
 
 async function request(method, path, body) {
+  const headers = {
+    ...(seedUser && { 'X-Remote-User': seedUser }),
+    ...(body && { 'Content-Type': 'application/json' }),
+  };
   const response = await fetch(`${apiUrl}${path}`, {
     method,
-    ...(body && { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+    headers,
+    ...(body && { body: JSON.stringify(body) }),
   });
   if (!response.ok) {
     throw new Error(`${method} ${path}: ${response.status} ${await response.text()}`);
@@ -52,5 +61,6 @@ for (const item of [...items].reverse()) {
 }
 
 console.log(
-  `Cargados ${created} ítems nuevos (${items.length - created} ya existían) en ${apiUrl}`,
+  `Cargados ${created} ítems nuevos (${items.length - created} ya existían) en ${apiUrl}` +
+    (seedUser ? ` para ${seedUser}` : ''),
 );

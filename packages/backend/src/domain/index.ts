@@ -7,3 +7,4 @@ export * from './item/DueDate.js';
 export * from './item/Item.js';
 export * from './item/ItemOrder.js';
 export * from './item/ItemRepository.js';
+export * from './item/Owner.js';

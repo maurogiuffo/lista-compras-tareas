@@ -55,6 +55,7 @@ describe('App', () => {
     expect(await screen.findByText('Asado')).toBeInTheDocument();
     expect(rowNames()).toEqual(['Pagar luz', 'Asado', 'Tomates']);
     expect(screen.getByText('3 pendientes')).toBeInTheDocument();
+    expect(await screen.findByText('· mauro')).toBeInTheDocument();
   });
 
   it('agrega un ítem al principio con su subcategoría', async () => {

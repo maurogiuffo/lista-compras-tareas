@@ -30,6 +30,7 @@ export function createHttpItemsApi(
   }
 
   return {
+    me: () => request<{ user: string }>('GET', '/me'),
     list: (category?: Category) =>
       request<Item[]>(
         'GET',

@@ -1,5 +1,6 @@
 import type { Category } from './Category.js';
 import type { Item } from './Item.js';
+import type { OwnerId } from './Owner.js';
 import type { Subcategory } from './Subcategory.js';
 
 export interface ItemFilter {
@@ -7,7 +8,10 @@ export interface ItemFilter {
   readonly subcategory?: Subcategory;
 }
 
-/** Puerto de persistencia. La infraestructura provee la implementación concreta. */
+/**
+ * Puerto de persistencia de UNA lista (la de un dueño). La infraestructura provee la
+ * implementación concreta.
+ */
 export interface ItemRepository {
   /** Devuelve los ítems en el orden de la lista (de arriba hacia abajo). */
   findAll(filter?: ItemFilter): Promise<Item[]>;
@@ -19,4 +23,9 @@ export interface ItemRepository {
   getOrder(): Promise<string[]>;
   /** Reemplaza el orden completo de la lista. */
   saveOrder(ids: readonly string[]): Promise<void>;
+}
+
+/** Entrega el repositorio de la lista de cada dueño: cada usuario ve solo la suya. */
+export interface ItemRepositoryProvider {
+  forOwner(ownerId: OwnerId): ItemRepository;
 }

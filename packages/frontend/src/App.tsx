@@ -9,6 +9,7 @@ import {
   localToday,
   matchesFilter,
 } from './domain/item';
+import { useCurrentUser } from './hooks/useCurrentUser';
 import { useItems } from './hooks/useItems';
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 
 export function App({ today = localToday(), confirm = (m) => window.confirm(m) }: Props) {
   const { items, loading, error, dismissError, add, update, remove, toggle, reorder } = useItems();
+  const user = useCurrentUser();
   const [filter, setFilter] = useState<ItemFilter>({ kind: 'all' });
   const [adding, setAdding] = useState(false);
 
@@ -43,6 +45,7 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
         <h1>Lista de compras</h1>
         <span className="summary" aria-live="polite">
           {loading ? 'Cargando…' : `${pendingCount} pendiente${pendingCount === 1 ? '' : 's'}`}
+          {user && <span className="user"> · {user}</span>}
         </span>
       </header>
 

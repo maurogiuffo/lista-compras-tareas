@@ -136,6 +136,27 @@ Para servir la app en una ruta de un dominio existente (por ejemplo
    dominio → **Custom locations** → **Add location**, con location `/lista`, esquema `http`,
    host `<ip-del-servidor>` y puerto `<WEB_PORT>`.
 
+## Usuarios: cada uno con su propia lista
+
+Con `AUTH_BASIC` activado, cada usuario de `auth/htpasswd` tiene su propia lista. Para
+agregar uno (no hace falta reiniciar nada):
+
+```bash
+docker run --rm httpd:2.4-alpine htpasswd -nbB ana 'su-clave' >> auth/htpasswd
+```
+
+Para quitarlo, borrar su línea del archivo. Sin `AUTH_BASIC`, todos comparten la lista de
+`DEFAULT_USER`. Al actualizar desde una versión sin usuarios, los ítems existentes pasan a
+`DEFAULT_USER`: definirlo en `.env` (por ejemplo `DEFAULT_USER=mauro`) **antes** de levantar
+la nueva versión.
+
+Para cargar la lista inicial en la cuenta de un usuario:
+
+```bash
+docker run --rm --network lista-compras_default -v "$PWD/scripts:/scripts" \
+  -e API_URL=http://api:3000/api -e SEED_USER=ana node:22-alpine node /scripts/seed.mjs
+```
+
 ## Operación
 
 | Tarea       | Comando                                        |

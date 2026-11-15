@@ -37,6 +37,14 @@ Los casos de uso reciben sus dependencias por constructor (inyección de depende
 que permite testearlos con implementaciones en memoria y cambiar SQLite por otra base sin
 tocar el dominio.
 
+## Usuarios
+
+Cada usuario tiene su propia lista. El usuario lo identifica el nginx del contenedor web
+(usuario y contraseña, ver [DEPLOY.md](DEPLOY.md)) y se lo pasa a la API en el header
+`X-Remote-User`. Sin login, todos usan la lista de `DEFAULT_USER`. En el backend, el puerto
+`ItemRepositoryProvider` entrega el repositorio de la lista de cada usuario, así que los
+casos de uso no cambian y un login con Google podría reemplazar al nginx sin tocarlos.
+
 ## Reglas de negocio
 
 | Acción                | Efecto                                                    |
@@ -58,6 +66,7 @@ Base: `/api`. Errores con formato `{ "error": "CODIGO", "message": "..." }` (400
 
 | Método | Ruta                            | Descripción                                                         |
 | ------ | ------------------------------- | ------------------------------------------------------------------- |
+| GET    | `/me`                           | Usuario actual                                                      |
 | GET    | `/health`                       | Estado del servicio                                                 |
 | GET    | `/items?category=&subcategory=` | Lista en orden; filtros opcionales                                  |
 | POST   | `/items`                        | Crea `{ name, category, subcategory?, urgency?, dueDate?, notes? }` |

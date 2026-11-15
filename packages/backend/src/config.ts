@@ -4,6 +4,11 @@ export interface Config {
   readonly databasePath: string;
   readonly corsOrigin: string | null;
   readonly logLevel: string;
+  /**
+   * Usuario cuando el proxy no informa ninguno (desarrollo, o sin contraseña).
+   * También recibe los ítems creados antes de que hubiera usuarios.
+   */
+  readonly defaultUser: string;
 }
 
 /** Lee la configuración de variables de entorno, con valores por defecto para desarrollo. */
@@ -16,5 +21,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     databasePath: env.DATABASE_PATH ?? './data/lista-compras.sqlite',
     corsOrigin: env.CORS_ORIGIN ?? null,
     logLevel: env.LOG_LEVEL ?? 'info',
+    defaultUser: env.DEFAULT_USER?.trim() || 'local',
   };
 }

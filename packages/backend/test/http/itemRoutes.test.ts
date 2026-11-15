@@ -1,9 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ItemDto } from '../../src/application/index.js';
-import { createUseCases } from '../../src/container.js';
+import { createUseCasesFactory } from '../../src/container.js';
 import { buildServer } from '../../src/infrastructure/http/buildServer.js';
-import { SqliteItemRepository } from '../../src/infrastructure/persistence/sqlite/SqliteItemRepository.js';
+import { ownerFromProxyHeader } from '../../src/infrastructure/http/owner.js';
+import { SqliteItemRepositoryProvider } from '../../src/infrastructure/persistence/sqlite/SqliteItemRepository.js';
 import { openDatabase } from '../../src/infrastructure/persistence/sqlite/openDatabase.js';
 import { FixedClock, SequentialIds } from '../helpers.js';
 
@@ -20,13 +21,52 @@ describe('API /api/items', () => {
   };
 
   beforeEach(async () => {
-    const repository = new SqliteItemRepository(openDatabase(':memory:'));
+    const provider = new SqliteItemRepositoryProvider(openDatabase(':memory:'));
     app = await buildServer({
-      useCases: createUseCases({ repository, clock: new FixedClock(), ids: new SequentialIds() }),
+      useCasesFor: createUseCasesFactory(provider, {
+        clock: new FixedClock(),
+        ids: new SequentialIds(),
+      }),
+      resolveOwner: ownerFromProxyHeader('local'),
     });
   });
 
   afterEach(() => app.close());
+
+  it('cada usuario del proxy ve solo su lista', async () => {
+    const as = (user: string) => ({ 'x-remote-user': user });
+    await app.inject({
+      method: 'POST',
+      url: '/api/items',
+      headers: as('ana'),
+      payload: { name: 'Yerba', category: 'insumos' },
+    });
+    await app.inject({
+      method: 'POST',
+      url: '/api/items',
+      headers: as('beto'),
+      payload: { name: 'Café', category: 'insumos' },
+    });
+    const list = async (user: string) =>
+      (await app.inject({ method: 'GET', url: '/api/items', headers: as(user) }))
+        .json<ItemDto[]>()
+        .map((i) => i.name);
+    expect(await list('ana')).toEqual(['Yerba']);
+    expect(await list('beto')).toEqual(['Café']);
+    // Sin header, el usuario por defecto tiene su propia lista (vacía).
+    expect(await names()).toEqual([]);
+
+    // Beto no puede tocar ítems de Ana.
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/items/item-1/done',
+      headers: as('beto'),
+    });
+    expect(res.statusCode).toBe(404);
+
+    const me = await app.inject({ method: 'GET', url: '/api/me', headers: as('ana') });
+    expect(me.json()).toEqual({ user: 'ana' });
+  });
 
   it('responde el health check', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/health' });

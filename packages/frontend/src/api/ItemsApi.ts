@@ -2,6 +2,8 @@ import type { Category, Item, ItemDraft, ReorderTarget } from '../domain/item';
 
 /** Puerto que usa la UI para hablar con el backend. Permite usar un doble en los tests. */
 export interface ItemsApi {
+  /** Usuario actual: cada usuario tiene su propia lista. */
+  me(): Promise<{ user: string }>;
   list(category?: Category): Promise<Item[]>;
   create(draft: ItemDraft): Promise<Item>;
   update(id: string, changes: Partial<ItemDraft>): Promise<Item>;
