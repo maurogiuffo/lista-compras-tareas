@@ -17,8 +17,16 @@ services:
     build:
       context: .
       dockerfile: packages/frontend/Dockerfile
+      args:
+        BASE_PATH: ${BASE_PATH:-/}
     image: lista-compras-web
     restart: unless-stopped
+    environment:
+      # "off" o un texto (por ejemplo "Lista de compras") para pedir usuario y contraseña
+      # según auth/htpasswd. Ver DEPLOY.md.
+      AUTH_BASIC: ${AUTH_BASIC:-off}
+    volumes:
+      - ./auth:/etc/nginx/auth:ro
     ports:
       # Detrás de un nginx en el mismo server, usar WEB_BIND=127.0.0.1 para no exponerlo.
       - '${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:80'

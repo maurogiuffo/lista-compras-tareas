@@ -110,6 +110,32 @@ como un sitio más y el puerto 8080 queda accesible solo desde el propio server.
 editarla. Hasta sumar autenticación, conviene limitar el acceso (por ejemplo `allow`/`deny`
 por IP o `auth_basic` en el `location`).
 
+## Publicar en una subruta y con contraseña
+
+Para servir la app en una ruta de un dominio existente (por ejemplo
+`https://midominio.com/lista/`) y pedir usuario y contraseña:
+
+1. Crear el archivo de usuarios (queda fuera de git):
+
+   ```bash
+   mkdir -p auth
+   docker run --rm httpd:2.4-alpine htpasswd -nbB mauro 'una-clave-larga' > auth/htpasswd
+   ```
+
+2. En `.env`:
+
+   ```bash
+   BASE_PATH=/lista/
+   AUTH_BASIC=Lista de compras
+   ```
+
+3. `docker compose up -d --build` (cambiar `BASE_PATH` requiere reconstruir).
+
+4. En el proxy, reenviar la ruta `/lista` tal cual (sin quitar el prefijo) a
+   `http://<ip-del-servidor>:<WEB_PORT>`. En Nginx Proxy Manager: editar el Proxy Host del
+   dominio → **Custom locations** → **Add location**, con location `/lista`, esquema `http`,
+   host `<ip-del-servidor>` y puerto `<WEB_PORT>`.
+
 ## Operación
 
 | Tarea       | Comando                                        |
@@ -135,10 +161,12 @@ Para restaurar, el mismo comando con el `cp` invertido.
 
 ## Variables de entorno
 
-| Variable    | Por defecto | Dónde                         |
-| ----------- | ----------- | ----------------------------- |
-| `WEB_PORT`  | `8080`      | `.env`: puerto publicado      |
-| `WEB_BIND`  | `0.0.0.0`   | `.env`: interfaz del puerto   |
-| `LOG_LEVEL` | `info`      | `.env`: nivel de logs del API |
+| Variable     | Por defecto | Dónde                         |
+| ------------ | ----------- | ----------------------------- |
+| `WEB_PORT`   | `8080`      | `.env`: puerto publicado      |
+| `WEB_BIND`   | `0.0.0.0`   | `.env`: interfaz del puerto   |
+| `BASE_PATH`  | `/`         | `.env`: ruta de publicación   |
+| `AUTH_BASIC` | `off`       | `.env`: pedir usuario y clave |
+| `LOG_LEVEL`  | `info`      | `.env`: nivel de logs del API |
 
 El resto (`PORT`, `DATABASE_PATH`) ya está fijado dentro de la imagen de la API.

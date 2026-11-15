@@ -7,3 +7,4 @@ coverage/
 packages/*/data/
 *.sqlite
 *.tar.gz
+auth/

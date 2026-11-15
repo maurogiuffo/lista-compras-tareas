@@ -2,7 +2,11 @@ import type { Category, Item, ReorderTarget } from '../domain/item';
 import { ApiError, type ItemsApi } from './ItemsApi';
 
 /** Implementación de `ItemsApi` sobre fetch contra la API REST. */
-export function createHttpItemsApi(baseUrl = '/api', fetchFn: typeof fetch = fetch): ItemsApi {
+/** Por defecto usa la API bajo la misma ruta donde se publica la app (por ejemplo /lista/api). */
+export function createHttpItemsApi(
+  baseUrl = `${import.meta.env.BASE_URL}api`,
+  fetchFn: typeof fetch = fetch,
+): ItemsApi {
   async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const response = await fetchFn(`${baseUrl}${path}`, {
       method,
