@@ -156,3 +156,26 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
   if (moved !== undefined) copy.splice(to, 0, moved);
   return copy;
 }
+
+/** Texto normalizado para comparar: sin tildes, en minúsculas y sin espacios extra. */
+export function normalizeText(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** El ítem contiene todas las palabras buscadas, en cualquier orden. */
+export function matchesSearch(item: Pick<Item, 'name'>, search: string): boolean {
+  const words = normalizeText(search).split(' ').filter(Boolean);
+  const name = normalizeText(item.name);
+  return words.every((word) => name.includes(word));
+}
+
+/** Ítem con exactamente ese nombre (ignorando tildes y mayúsculas), si existe. */
+export function findByName(items: readonly Item[], name: string): Item | undefined {
+  const target = normalizeText(name);
+  return target ? items.find((i) => normalizeText(i.name) === target) : undefined;
+}

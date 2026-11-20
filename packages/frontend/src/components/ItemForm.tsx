@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, type ReactNode, useId, useState } from 'react';
 import {
   CATEGORIES,
   CATEGORY_LABELS,
@@ -20,6 +20,10 @@ interface Props {
   readonly onCancel?: () => void;
   /** Limpia el formulario después de guardar (para cargar varios seguidos). */
   readonly resetOnSubmit?: boolean;
+  /** Avisa cada cambio del nombre (por ejemplo, para buscar duplicados mientras se escribe). */
+  readonly onNameChange?: (name: string) => void;
+  /** Aviso que se muestra debajo del nombre. */
+  readonly hint?: ReactNode;
 }
 
 const EMPTY: ItemDraft = {
@@ -38,6 +42,8 @@ export function ItemForm({
   onSubmit,
   onCancel,
   resetOnSubmit = false,
+  onNameChange,
+  hint,
 }: Props) {
   const id = useId();
   const [draft, setDraft] = useState<ItemDraft>({ ...EMPTY, ...initial });
@@ -54,6 +60,7 @@ export function ItemForm({
       await onSubmit({ ...draft, name, notes: draft.notes?.trim() || null });
       if (resetOnSubmit) {
         setDraft((d) => ({ ...EMPTY, category: d.category, subcategory: d.subcategory }));
+        onNameChange?.('');
       }
     } finally {
       setSubmitting(false);
@@ -72,8 +79,16 @@ export function ItemForm({
         value={draft.name}
         maxLength={120}
         autoFocus
-        onChange={(e) => set('name', e.target.value)}
+        onChange={(e) => {
+          set('name', e.target.value);
+          onNameChange?.(e.target.value);
+        }}
       />
+      {hint && (
+        <p className="form-hint" role="status">
+          {hint}
+        </p>
+      )}
       <div className="form-row">
         <label>
           <span>Categoría</span>

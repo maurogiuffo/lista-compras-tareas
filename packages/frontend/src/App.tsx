@@ -6,8 +6,10 @@ import {
   type Item,
   type ItemDraft,
   type ItemFilter,
+  findByName,
   localToday,
   matchesFilter,
+  matchesSearch,
 } from './domain/item';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import { useItems } from './hooks/useItems';
@@ -25,7 +27,14 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
   const [filter, setFilter] = useState<ItemFilter>({ kind: 'all' });
   const [adding, setAdding] = useState(false);
 
-  const visible = items.filter((i) => matchesFilter(i, filter));
+  // Mientras se escribe un ítem nuevo, la lista muestra los que coinciden (en todas las
+  // categorías) para ver si ya existe antes de duplicarlo.
+  const [search, setSearch] = useState('');
+  const searching = adding && search.trim() !== '';
+  const visible = searching
+    ? items.filter((i) => matchesSearch(i, search))
+    : items.filter((i) => matchesFilter(i, filter));
+  const existing = searching ? findByName(items, search) : undefined;
   // Al agregar con un filtro activo, el formulario arranca con esa clasificación.
   const initialDraft: Partial<ItemDraft> =
     filter.kind === 'category'
@@ -65,7 +74,12 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
             submitLabel="Agregar"
             resetOnSubmit
             onSubmit={add}
-            onCancel={() => setAdding(false)}
+            onNameChange={setSearch}
+            hint={existing && <ExistingHint item={existing} onMarkPending={toggle} />}
+            onCancel={() => {
+              setAdding(false);
+              setSearch('');
+            }}
           />
         ) : (
           <button type="button" className="add-button" onClick={() => setAdding(true)}>
@@ -74,7 +88,15 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
         )}
       </section>
 
-      <CategoryFilter value={filter} items={items} onChange={setFilter} />
+      {searching ? (
+        <p className="search-summary">
+          {visible.length === 0
+            ? 'No está en la lista: se va a agregar como nuevo.'
+            : `Ya en la lista con “${search.trim()}”: ${visible.length}`}
+        </p>
+      ) : (
+        <CategoryFilter value={filter} items={items} onChange={setFilter} />
+      )}
 
       {!loading && (
         <ItemList
@@ -84,8 +106,27 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
           onUpdate={update}
           onDelete={handleDelete}
           onReorder={(id, target) => void reorder(id, target)}
+          {...(searching && { emptyMessage: '' })}
         />
       )}
     </div>
+  );
+}
+
+function ExistingHint({
+  item,
+  onMarkPending,
+}: {
+  readonly item: Item;
+  readonly onMarkPending: (item: Item) => Promise<void>;
+}) {
+  if (item.status === 'pending') return <>“{item.name}” ya está en la lista como pendiente.</>;
+  return (
+    <>
+      “{item.name}” ya está en la lista, marcado como comprado.{' '}
+      <button type="button" className="link" onClick={() => void onMarkPending(item)}>
+        Marcar que falta
+      </button>
+    </>
   );
 }

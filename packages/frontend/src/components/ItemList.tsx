@@ -31,9 +31,18 @@ interface Props {
   readonly onUpdate: (id: string, changes: ItemDraft) => Promise<void>;
   readonly onDelete: (item: Item) => void;
   readonly onReorder: (id: string, target: ReorderTarget) => void;
+  readonly emptyMessage?: string;
 }
 
-export function ItemList({ items, today, onToggle, onUpdate, onDelete, onReorder }: Props) {
+export function ItemList({
+  items,
+  today,
+  onToggle,
+  onUpdate,
+  onDelete,
+  onReorder,
+  emptyMessage = 'No hay nada acá. ¡Todo en orden!',
+}: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -49,7 +58,7 @@ export function ItemList({ items, today, onToggle, onUpdate, onDelete, onReorder
   };
 
   if (items.length === 0) {
-    return <p className="empty">No hay nada acá. ¡Todo en orden!</p>;
+    return <p className="empty">{emptyMessage}</p>;
   }
 
   return (

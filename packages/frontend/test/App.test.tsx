@@ -73,6 +73,36 @@ describe('App', () => {
     });
   });
 
+  it('al escribir un ítem nuevo filtra la lista para ver si ya existe', async () => {
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.click(screen.getByRole('button', { name: '+ Agregar' }));
+    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'asa');
+    expect(rowNames()).toEqual(['Asado']);
+    expect(screen.getByText(/Ya en la lista con “asa”: 1/)).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'do');
+    expect(screen.getByText('“Asado” ya está en la lista como pendiente.')).toBeInTheDocument();
+
+    await user.clear(screen.getByPlaceholderText('¿Qué falta?'));
+    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Kiwi');
+    expect(screen.getByText(/No está en la lista/)).toBeInTheDocument();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(rowNames()).toEqual(['Pagar luz', 'Asado', 'Tomates']);
+  });
+
+  it('si lo que escribo ya fue comprado, ofrece marcar que falta', async () => {
+    await api.markDone('item-2'); // Asado
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.click(screen.getByRole('button', { name: '+ Agregar' }));
+    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'ASADO');
+    await user.click(screen.getByRole('button', { name: 'Marcar que falta' }));
+    await waitFor(() => expect(api.items[0]).toMatchObject({ name: 'Asado', status: 'pending' }));
+  });
+
   it('las tareas no tienen subcategoría', async () => {
     const user = setup(api);
     await screen.findByText('Asado');

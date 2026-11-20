@@ -357,3 +357,23 @@ select {
   color: var(--muted);
   padding: 2rem 0;
 }
+
+.form-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--soon);
+}
+
+button.link {
+  background: none;
+  color: var(--primary);
+  padding: 0;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.search-summary {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
