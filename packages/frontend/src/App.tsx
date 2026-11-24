@@ -118,7 +118,7 @@ function ExistingHint({
   onMarkPending,
 }: {
   readonly item: Item;
-  readonly onMarkPending: (item: Item) => Promise<void>;
+  readonly onMarkPending: (item: Item) => Promise<unknown>;
 }) {
   if (item.status === 'pending') return <>“{item.name}” ya está en la lista como pendiente.</>;
   return (

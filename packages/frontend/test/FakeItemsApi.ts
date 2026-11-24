@@ -17,6 +17,9 @@ export class FakeItemsApi implements ItemsApi {
   }
 
   async create(draft: ItemDraft) {
+    const allowed = ['name', 'category', 'subcategory', 'urgency', 'dueDate', 'notes'];
+    const unknown = Object.keys(draft).filter((k) => !allowed.includes(k));
+    if (unknown.length > 0) throw new Error(`Campos no permitidos: ${unknown.join(', ')}`);
     this.seq += 1;
     const item: Item = {
       ...draft,
@@ -30,6 +33,10 @@ export class FakeItemsApi implements ItemsApi {
   }
 
   async update(id: string, changes: Partial<ItemDraft>) {
+    // Igual que la API real: rechaza campos que no se pueden editar.
+    const allowed = ['name', 'category', 'subcategory', 'urgency', 'dueDate', 'notes'];
+    const unknown = Object.keys(changes).filter((k) => !allowed.includes(k));
+    if (unknown.length > 0) throw new Error(`Campos no permitidos: ${unknown.join(', ')}`);
     return this.replace(id, changes);
   }
 

@@ -28,7 +28,7 @@ interface Props {
   readonly items: readonly Item[];
   readonly today: string;
   readonly onToggle: (item: Item) => void;
-  readonly onUpdate: (id: string, changes: ItemDraft) => Promise<void>;
+  readonly onUpdate: (id: string, changes: ItemDraft) => Promise<boolean>;
   readonly onDelete: (item: Item) => void;
   readonly onReorder: (id: string, target: ReorderTarget) => void;
   readonly emptyMessage?: string;
@@ -78,8 +78,8 @@ export function ItemList({
                   submitLabel="Guardar"
                   onCancel={() => setEditingId(null)}
                   onSubmit={async (draft) => {
-                    await onUpdate(item.id, draft);
-                    setEditingId(null);
+                    // Si no se pudo guardar, el formulario queda abierto con el aviso de error.
+                    if (await onUpdate(item.id, draft)) setEditingId(null);
                   }}
                 />
               </li>

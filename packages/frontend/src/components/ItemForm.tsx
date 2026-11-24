@@ -16,7 +16,8 @@ import {
 interface Props {
   readonly initial?: Partial<ItemDraft>;
   readonly submitLabel: string;
-  readonly onSubmit: (draft: ItemDraft) => void | Promise<void>;
+  /** Si devuelve `false` (no se pudo guardar), el formulario conserva lo escrito. */
+  readonly onSubmit: (draft: ItemDraft) => unknown;
   readonly onCancel?: () => void;
   /** Limpia el formulario después de guardar (para cargar varios seguidos). */
   readonly resetOnSubmit?: boolean;
@@ -46,7 +47,7 @@ export function ItemForm({
   hint,
 }: Props) {
   const id = useId();
-  const [draft, setDraft] = useState<ItemDraft>({ ...EMPTY, ...initial });
+  const [draft, setDraft] = useState<ItemDraft>(() => toDraft(initial));
   const [submitting, setSubmitting] = useState(false);
   const set = <K extends keyof ItemDraft>(key: K, value: ItemDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -57,8 +58,8 @@ export function ItemForm({
     if (!name) return;
     setSubmitting(true);
     try {
-      await onSubmit({ ...draft, name, notes: draft.notes?.trim() || null });
-      if (resetOnSubmit) {
+      const saved = await onSubmit({ ...draft, name, notes: draft.notes?.trim() || null });
+      if (resetOnSubmit && saved !== false) {
         setDraft((d) => ({ ...EMPTY, category: d.category, subcategory: d.subcategory }));
         onNameChange?.('');
       }
@@ -167,4 +168,19 @@ export function ItemForm({
       </div>
     </form>
   );
+}
+
+/**
+ * Toma solo los campos editables. `initial` puede ser un ítem completo (al editar), y
+ * mandar id, estado o fechas a la API haría que rechace el cambio.
+ */
+function toDraft(initial: Partial<ItemDraft> = {}): ItemDraft {
+  return {
+    name: initial.name ?? EMPTY.name,
+    category: initial.category ?? EMPTY.category,
+    subcategory: initial.subcategory ?? EMPTY.subcategory,
+    urgency: initial.urgency ?? EMPTY.urgency,
+    dueDate: initial.dueDate ?? EMPTY.dueDate,
+    notes: initial.notes ?? EMPTY.notes,
+  };
 }

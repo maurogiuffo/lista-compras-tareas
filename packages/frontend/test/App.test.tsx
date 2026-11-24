@@ -147,8 +147,26 @@ describe('App', () => {
     const input = screen.getByDisplayValue('Asado');
     await user.clear(input);
     await user.type(input, 'Vacío');
+    await user.selectOptions(screen.getByLabelText('Urgencia'), 'baja');
     await user.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(await screen.findByText('Vacío')).toBeInTheDocument();
+    expect(api.items.find((i) => i.id === 'item-2')).toMatchObject({
+      name: 'Vacío',
+      urgency: 'baja',
+    });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('si no se puede guardar la edición, el formulario queda abierto con el aviso', async () => {
+    api.update = async () => {
+      throw new Error('Sin conexión');
+    };
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.click(screen.getByLabelText('Editar Asado'));
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sin conexión');
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeInTheDocument();
   });
 
   it('borra un ítem solo si se confirma', async () => {

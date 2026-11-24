@@ -7,11 +7,12 @@ export interface UseItems {
   readonly loading: boolean;
   readonly error: string | null;
   readonly dismissError: () => void;
-  readonly add: (draft: ItemDraft) => Promise<void>;
-  readonly update: (id: string, changes: Partial<ItemDraft>) => Promise<void>;
-  readonly remove: (id: string) => Promise<void>;
-  readonly toggle: (item: Item) => Promise<void>;
-  readonly reorder: (id: string, target: ReorderTarget) => Promise<void>;
+  /** Cada acción devuelve `true` si se guardó; si falla, el motivo queda en `error`. */
+  readonly add: (draft: ItemDraft) => Promise<boolean>;
+  readonly update: (id: string, changes: Partial<ItemDraft>) => Promise<boolean>;
+  readonly remove: (id: string) => Promise<boolean>;
+  readonly toggle: (item: Item) => Promise<boolean>;
+  readonly reorder: (id: string, target: ReorderTarget) => Promise<boolean>;
 }
 
 /** Aplica localmente la misma regla que el backend, para que el arrastre no "salte". */
@@ -41,14 +42,16 @@ export function useItems(): UseItems {
   }, [api]);
 
   const run = useCallback(
-    async (action: () => Promise<unknown>) => {
+    async (action: () => Promise<unknown>): Promise<boolean> => {
       try {
         await action();
         await refresh();
         setError(null);
+        return true;
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Error inesperado');
         await refresh().catch(() => undefined);
+        return false;
       }
     },
     [refresh],
