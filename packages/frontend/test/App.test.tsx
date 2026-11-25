@@ -125,6 +125,36 @@ describe('App', () => {
     await waitFor(() => expect(rowNames()).toEqual(['Pagar luz', 'Asado', 'Tomates']));
   });
 
+  it('al marcar, el ítem se mueve al instante sin esperar al servidor', async () => {
+    let finish: () => void = () => undefined;
+    const markDone = api.markDone.bind(api);
+    api.markDone = (id) =>
+      new Promise((resolve) => {
+        finish = () => void markDone(id).then(resolve);
+      });
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.click(screen.getByLabelText('Marcar Pagar luz como hecho'));
+    // El servidor todavía no respondió y la lista ya cambió.
+    expect(rowNames()).toEqual(['Asado', 'Tomates', 'Pagar luz']);
+    expect(screen.getByLabelText('Marcar que falta Pagar luz')).toBeChecked();
+    finish();
+    await waitFor(() => expect(api.items.at(-1)).toMatchObject({ status: 'done' }));
+    expect(rowNames()).toEqual(['Asado', 'Tomates', 'Pagar luz']);
+  });
+
+  it('si el servidor no puede marcar, el ítem vuelve a su lugar con el aviso', async () => {
+    api.markDone = async () => {
+      throw new Error('Sin conexión');
+    };
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.click(screen.getByLabelText('Marcar Pagar luz como hecho'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sin conexión');
+    await waitFor(() => expect(rowNames()).toEqual(['Pagar luz', 'Asado', 'Tomates']));
+    expect(screen.getByLabelText('Marcar Pagar luz como hecho')).not.toBeChecked();
+  });
+
   it('filtra por categoría y subcategoría', async () => {
     const user = setup(api);
     await screen.findByText('Asado');
