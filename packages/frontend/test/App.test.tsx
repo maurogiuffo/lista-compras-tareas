@@ -62,7 +62,7 @@ describe('App', () => {
     const user = setup(api);
     await screen.findByText('Asado');
     await user.click(screen.getByRole('button', { name: '+ Agregar' }));
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Lavandina');
+    await user.type(screen.getByLabelText('Nombre del ítem nuevo'), 'Lavandina');
     await user.selectOptions(screen.getByLabelText('Subcategoría'), 'limpieza');
     await user.click(screen.getByRole('button', { name: 'Agregar' }));
     await waitFor(() => expect(rowNames()[0]).toBe('Lavandina'));
@@ -73,32 +73,51 @@ describe('App', () => {
     });
   });
 
-  it('al escribir un ítem nuevo filtra la lista para ver si ya existe', async () => {
+  it('el buscador siempre visible filtra la lista en todas las categorías', async () => {
     const user = setup(api);
     await screen.findByText('Asado');
-    await user.click(screen.getByRole('button', { name: '+ Agregar' }));
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'asa');
+    const search = screen.getByLabelText('Buscar');
+    await user.type(search, 'asa');
     expect(rowNames()).toEqual(['Asado']);
-    expect(screen.getByText(/Ya en la lista con “asa”: 1/)).toBeInTheDocument();
+    expect(screen.getByText('1 con “asa”')).toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'do');
+    await user.type(search, 'do');
     expect(screen.getByText('“Asado” ya está en la lista como pendiente.')).toBeInTheDocument();
 
-    await user.clear(screen.getByPlaceholderText('¿Qué falta?'));
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Kiwi');
+    await user.clear(search);
+    await user.type(search, 'Kiwi');
     expect(screen.getByText(/No está en la lista/)).toBeInTheDocument();
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.clear(search);
     expect(rowNames()).toEqual(['Pagar luz', 'Asado', 'Tomates']);
+  });
+
+  it('agregar usa lo escrito en el buscador como nombre', async () => {
+    const user = setup(api);
+    await screen.findByText('Asado');
+    await user.type(screen.getByLabelText('Buscar'), 'Kiwi');
+    await user.click(screen.getByRole('button', { name: '+ Agregar' }));
+    expect(screen.getByLabelText('Nombre del ítem nuevo')).toHaveValue('Kiwi');
+    expect(
+      screen.getByText('No está en la lista: se va a agregar como nuevo.'),
+    ).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Nombre del ítem nuevo'), '{Enter}');
+    await waitFor(() => expect(api.items[0]).toMatchObject({ name: 'Kiwi' }));
+    // Queda listo para cargar otro, con la lista completa otra vez.
+    expect(screen.getByLabelText('Nombre del ítem nuevo')).toHaveValue('');
+    expect(rowNames()).toEqual(['Kiwi', 'Pagar luz', 'Asado', 'Tomates']);
+
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.getByLabelText('Buscar')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '+ Agregar' })).toBeInTheDocument();
   });
 
   it('si lo que escribo ya fue comprado, ofrece marcar que falta', async () => {
     await api.markDone('item-2'); // Asado
     const user = setup(api);
     await screen.findByText('Asado');
-    await user.click(screen.getByRole('button', { name: '+ Agregar' }));
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'ASADO');
+    await user.type(screen.getByLabelText('Buscar'), 'ASADO');
     await user.click(screen.getByRole('button', { name: 'Marcar que falta' }));
     await waitFor(() => expect(api.items[0]).toMatchObject({ name: 'Asado', status: 'pending' }));
   });
@@ -110,7 +129,7 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText('Subcategoría'), 'limpieza');
     await user.selectOptions(screen.getByLabelText('Categoría'), 'tarea');
     expect(screen.queryByLabelText('Subcategoría')).not.toBeInTheDocument();
-    await user.type(screen.getByPlaceholderText('¿Qué falta?'), 'Llamar al plomero');
+    await user.type(screen.getByLabelText('Nombre del ítem nuevo'), 'Llamar al plomero');
     await user.click(screen.getByRole('button', { name: 'Agregar' }));
     await waitFor(() => expect(rowNames()[0]).toBe('Llamar al plomero'));
     expect(api.items[0]).toMatchObject({ category: 'tarea', subcategory: null });

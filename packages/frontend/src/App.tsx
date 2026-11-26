@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { CategoryFilter } from './components/CategoryFilter';
 import { ItemForm } from './components/ItemForm';
 import { ItemList } from './components/ItemList';
@@ -27,10 +27,12 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
   const [filter, setFilter] = useState<ItemFilter>({ kind: 'all' });
   const [adding, setAdding] = useState(false);
 
-  // Mientras se escribe un ítem nuevo, la lista muestra los que coinciden (en todas las
-  // categorías) para ver si ya existe antes de duplicarlo.
+  // El buscador siempre está visible: filtra la lista (en todas las categorías) y, al
+  // agregar, lo escrito es el nombre del ítem nuevo, así se ve si ya existe antes de duplicarlo.
   const [search, setSearch] = useState('');
-  const searching = adding && search.trim() !== '';
+  const searchRef = useRef<HTMLInputElement>(null);
+  const addFormId = useId();
+  const searching = search.trim() !== '';
   const visible = searching
     ? items.filter((i) => matchesSearch(i, search))
     : items.filter((i) => matchesFilter(i, filter));
@@ -43,6 +45,11 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
         ? { category: 'insumos', subcategory: filter.subcategory }
         : {};
   const pendingCount = visible.filter((i) => i.status === 'pending').length;
+
+  const closeAdd = () => {
+    setAdding(false);
+    setSearch('');
+  };
 
   const handleDelete = (item: Item) => {
     if (confirm(`¿Borrar "${item.name}"?`)) void remove(item.id);
@@ -68,31 +75,62 @@ export function App({ today = localToday(), confirm = (m) => window.confirm(m) }
       )}
 
       <section className="add-section">
-        {adding ? (
+        <div className="search-bar">
+          <input
+            ref={searchRef}
+            type="search"
+            className="search-input"
+            placeholder={adding ? '¿Qué falta?' : 'Buscar…'}
+            aria-label={adding ? 'Nombre del ítem nuevo' : 'Buscar'}
+            value={search}
+            maxLength={120}
+            // Al agregar, Enter en el buscador envía el formulario de alta.
+            {...(adding && { form: addFormId })}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !adding && searching) setAdding(true);
+              if (e.key === 'Escape') closeAdd();
+            }}
+          />
+          {!adding && (
+            <button
+              type="button"
+              className="add-inline"
+              onClick={() => {
+                setAdding(true);
+                searchRef.current?.focus();
+              }}
+            >
+              + Agregar
+            </button>
+          )}
+        </div>
+        {existing && (
+          <p className="form-hint" role="status">
+            <ExistingHint item={existing} onMarkPending={toggle} />
+          </p>
+        )}
+        {adding && (
           <ItemForm
+            formId={addFormId}
             initial={initialDraft}
+            name={search}
             submitLabel="Agregar"
             resetOnSubmit
             onSubmit={add}
             onNameChange={setSearch}
-            hint={existing && <ExistingHint item={existing} onMarkPending={toggle} />}
-            onCancel={() => {
-              setAdding(false);
-              setSearch('');
-            }}
+            onCancel={closeAdd}
           />
-        ) : (
-          <button type="button" className="add-button" onClick={() => setAdding(true)}>
-            + Agregar
-          </button>
         )}
       </section>
 
       {searching ? (
         <p className="search-summary">
-          {visible.length === 0
-            ? 'No está en la lista: se va a agregar como nuevo.'
-            : `Ya en la lista con “${search.trim()}”: ${visible.length}`}
+          {visible.length > 0
+            ? `${visible.length} con “${search.trim()}”`
+            : adding
+              ? 'No está en la lista: se va a agregar como nuevo.'
+              : 'No está en la lista. Tocá “+ Agregar” para sumarlo.'}
         </p>
       ) : (
         <CategoryFilter value={filter} items={items} onChange={setFilter} />

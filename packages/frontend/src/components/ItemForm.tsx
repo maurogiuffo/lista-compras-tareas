@@ -25,6 +25,13 @@ interface Props {
   readonly onNameChange?: (name: string) => void;
   /** Aviso que se muestra debajo del nombre. */
   readonly hint?: ReactNode;
+  /**
+   * Nombre escrito fuera del formulario (en el buscador). Si se pasa, el formulario no
+   * muestra su propio campo de nombre y usa este.
+   */
+  readonly name?: string;
+  /** Id del `<form>`, para que un campo de afuera pueda enviarlo con Enter. */
+  readonly formId?: string;
 }
 
 const EMPTY: ItemDraft = {
@@ -45,6 +52,8 @@ export function ItemForm({
   resetOnSubmit = false,
   onNameChange,
   hint,
+  name: externalName,
+  formId,
 }: Props) {
   const id = useId();
   const [draft, setDraft] = useState<ItemDraft>(() => toDraft(initial));
@@ -54,7 +63,7 @@ export function ItemForm({
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const name = draft.name.trim();
+    const name = (externalName ?? draft.name).trim();
     if (!name) return;
     setSubmitting(true);
     try {
@@ -68,23 +77,29 @@ export function ItemForm({
     }
   };
 
+  const currentName = externalName ?? draft.name;
+
   return (
-    <form className="item-form" onSubmit={handleSubmit}>
-      <label className="sr-only" htmlFor={`${id}-name`}>
-        Nombre
-      </label>
-      <input
-        id={`${id}-name`}
-        className="name-input"
-        placeholder="¿Qué falta?"
-        value={draft.name}
-        maxLength={120}
-        autoFocus
-        onChange={(e) => {
-          set('name', e.target.value);
-          onNameChange?.(e.target.value);
-        }}
-      />
+    <form id={formId} className="item-form" onSubmit={handleSubmit}>
+      {externalName === undefined && (
+        <>
+          <label className="sr-only" htmlFor={`${id}-name`}>
+            Nombre
+          </label>
+          <input
+            id={`${id}-name`}
+            className="name-input"
+            placeholder="¿Qué falta?"
+            value={draft.name}
+            maxLength={120}
+            autoFocus
+            onChange={(e) => {
+              set('name', e.target.value);
+              onNameChange?.(e.target.value);
+            }}
+          />
+        </>
+      )}
       {hint && (
         <p className="form-hint" role="status">
           {hint}
@@ -162,7 +177,7 @@ export function ItemForm({
             Cancelar
           </button>
         )}
-        <button type="submit" disabled={submitting || !draft.name.trim()}>
+        <button type="submit" disabled={submitting || !currentName.trim()}>
           {submitLabel}
         </button>
       </div>
